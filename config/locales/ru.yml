@@ -1,0 +1,7 @@
+# English strings go here for Rails i18n
+ru:
+  # my_label: "My label"
+  custom_field_date_id: "Кастомное поле типа (Дата)"
+  custom_user_field: "Кастомное поле типа (Пользователь)"
+  group_name: "Имя группы для фильтрации списка пользователей"
+  check_subtask: "Считать подзадачи?"

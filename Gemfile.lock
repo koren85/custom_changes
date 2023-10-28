@@ -1,0 +1,64 @@
+GEM
+  specs:
+    actionview (5.2.5)
+      activesupport (= 5.2.5)
+      builder (~> 3.1)
+      erubi (~> 1.4)
+      rails-dom-testing (~> 2.0)
+      rails-html-sanitizer (~> 1.0, >= 1.0.3)
+    activemodel (5.2.5)
+      activesupport (= 5.2.5)
+    activerecord (5.2.5)
+      activemodel (= 5.2.5)
+      activesupport (= 5.2.5)
+      arel (>= 9.0)
+    activesupport (5.2.5)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 0.7, < 2)
+      minitest (~> 5.1)
+      tzinfo (~> 1.1)
+    arel (9.0.0)
+    builder (3.2.4)
+    concurrent-ruby (1.1.8)
+    crass (1.0.6)
+    erubi (1.10.0)
+    i18n (1.8.10)
+      concurrent-ruby (~> 1.0)
+    kaminari (1.2.2)
+      activesupport (>= 4.1.0)
+      kaminari-actionview (= 1.2.2)
+      kaminari-activerecord (= 1.2.2)
+      kaminari-core (= 1.2.2)
+    kaminari-actionview (1.2.2)
+      actionview
+      kaminari-core (= 1.2.2)
+    kaminari-activerecord (1.2.2)
+      activerecord
+      kaminari-core (= 1.2.2)
+    kaminari-core (1.2.2)
+    loofah (2.9.1)
+      crass (~> 1.0.2)
+      nokogiri (>= 1.5.9)
+    minitest (5.14.4)
+    nokogiri (1.11.6-x64-mingw32)
+      racc (~> 1.4)
+    racc (1.5.2)
+    rails-dom-testing (2.0.3)
+      activesupport (>= 4.2.0)
+      nokogiri (>= 1.6)
+    rails-html-sanitizer (1.3.0)
+      loofah (~> 2.3)
+    thread_safe (0.3.6)
+    tzinfo (1.2.9)
+      thread_safe (~> 0.1)
+    will_paginate (3.1.8)
+
+PLATFORMS
+  x64-mingw32
+
+DEPENDENCIES
+  kaminari
+  will_paginate
+
+BUNDLED WITH
+   2.3.26

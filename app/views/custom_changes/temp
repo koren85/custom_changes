@@ -1,0 +1,29 @@
+ <tbody>
+    <% @issues_by_project.each do |custom_field_value, custom_field_issues| %>
+      <tr class="group-header" data-group-id="<%= custom_field_value %>">
+        <td colspan="9">
+          <span class="toggle-icon">▼</span>
+          <strong><%= custom_field_value %></strong>
+        </td>
+      </tr>
+      <% custom_field_issues.sort_by!(&:id).each do |issue| %>
+        <tr class="group-row" data-group-id="<%= custom_field_value %>">
+          <td class="id"><%= link_to issue.id, issue_path(issue) %></td>
+          <td class="project"><%= link_to issue.project.name, project_path(issue.project) %></td>
+          <td class="subject"><%= link_to issue.subject, issue_path(issue) %></td>
+          <td class="status"><%= issue.status.name %></td>
+          <td class="cf"><%= issue.count_custom_field_changes_from_date_count(@custom_field_date_id, issue.id, params[:start_date], params[:end_date]) %></td>
+          <% if issue.custom_value_for(@custom_field_date_id)&.value.present? %>
+            <td class="cf_date"><%= issue.custom_value_for(@custom_field_date_id)&.value.to_date.strftime('%d.%m.%Y') %></td>
+          <% end %>
+          <% if issue.start_date.present? %>
+            <td class="date"><%= issue.start_date.strftime('%d.%m.%Y') %></td>
+          <% end %>
+          <% if issue.due_date.present? %>
+            <td class="date"><%= issue.due_date.strftime('%d.%m.%Y') %></td>
+          <% end %>
+          <td class="id"><%= issue.parent_id %></td>
+        </tr>
+      <% end %>
+    <% end %>
+    </tbody>

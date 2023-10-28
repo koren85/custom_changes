@@ -1,0 +1,110 @@
+<%= form_tag({ controller: 'custom_changes', action: 'index' }, method: 'get') do %>
+  <%= stylesheet_link_tag 'custom_changes', plugin: 'custom_changes' %>
+  <div>
+    <label for="start_date">Начало периода:</label>
+    <%= date_field_tag 'start_date', params[:start_date] %>
+  </div>
+  <div>
+    <label for="end_date">Конец периода:</label>
+    <%= date_field_tag 'end_date', params[:end_date] %>
+  </div>
+  <div>
+    <label for="status_filter">Статус задач:</label>
+    <%= select_tag 'status_filter', options_for_select(IssueStatus.all.pluck(:name, :id), params[:status_filter]), include_blank: true %>
+  </div>
+  <div>
+    <label for="user_id">Руководитель отдела:</label>
+    <%= select_tag 'user_id', options_for_select(@users_in_group.map { |user| ["#{user[2]} #{user[1]}", user[0]] }, selected: params[:user_id]), include_blank: true %>
+  </div>
+  <div>
+    <label for="project_id">Проект:</label>
+    <%= select_tag 'project_id', options_from_collection_for_select(@projects, 'id', 'name', params[:project_id]), include_blank: true %>
+  </div>
+  <div>
+    <label for="count_int">Кол-во изменений Итоговой даты больше чем:</label>
+    <%= number_field_tag 'count_int', @count_int, min: 0, step: 1 %>
+  </div>
+  <div>
+    <%= submit_tag 'Показать' %>
+  </div>
+
+<% end %>
+
+
+<% if @issues_by_project.present? %>
+  <table class="list issues" class="group-table">
+    <thead>
+    <tr>
+
+      <th class="id">Номер Задачи</th>
+      <th class="project">Проект</th>
+      <th class="subject">Тема</th>
+      <th class="status">Статус</th>
+      <th class="cf">Кол-во изменений даты</th>
+      <th class="date">Итоговая дата</th>
+      <th class="date">Дата начала задачи</th>
+      <th class="date">Срок завершения задачи</th>
+      <th class="id">Родительская задача</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @issues_by_project.each do |custom_field_value, custom_field_issues| %>
+      <tr class="group-header" data-group-id="<%= custom_field_value %>">
+        <td colspan="9">
+          <span class="toggle-icon">▼</span>
+          <strong><%= custom_field_value %></strong>
+        </td>
+      </tr>
+      <% custom_field_issues.sort_by!(&:id).each do |issue| %>
+        <tr class="group-row" data-group-id="<%= custom_field_value %>">
+          <td class="id"><%= link_to issue.id, issue_path(issue) %></td>
+          <td class="project"><%= link_to issue.project.name, project_path(issue.project) %></td>
+          <td class="subject"><%= link_to issue.subject, issue_path(issue) %></td>
+          <td class="status"><%= issue.status.name %></td>
+          <td class="cf"><%= issue.count_custom_field_changes_from_date_count(@custom_field_date_id, issue.id, params[:start_date], params[:end_date]) %></td>
+          <% if issue.custom_value_for(@custom_field_date_id)&.value.present? %>
+            <td class="cf_date"><%= issue.custom_value_for(@custom_field_date_id)&.value.to_date.strftime('%d.%m.%Y') %></td>
+          <% end %>
+          <% if issue.start_date.present? %>
+            <td class="date"><%= issue.start_date.strftime('%d.%m.%Y') %></td>
+          <% end %>
+          <% if issue.due_date.present? %>
+            <td class="date"><%= issue.due_date.strftime('%d.%m.%Y') %></td>
+          <% end %>
+          <td class="id"><%= issue.parent_id %></td>
+        </tr>
+      <% end %>
+    <% end %>
+    </tbody>
+
+
+  </table>
+<% else %>
+  <p>По критерию записей не найдено</p>
+<% end %>
+<br>
+
+<br>
+
+<%= link_to 'Экспортировать CSV', export_csv_custom_changes_path(issues: @issues, start_date: params[:start_date], end_date: params[:end_date], format: 'csv') %>
+
+<script>
+    $(document).ready(function () {
+        // Скрыть все строки групп при загрузке страницы
+        $(".group-row").show();
+
+        // Обработка клика на заголовке группы
+        $(".group-header").click(function () {
+            var groupId = $(this).data("group-id");
+            var groupRows = $(".group-row[data-group-id='" + groupId + "']");
+
+            // Переключение видимости строк
+            groupRows.toggle();
+
+            // Изменение пиктограммы в зависимости от видимости строк
+            var toggleIcon = $(this).find(".toggle-icon");
+            toggleIcon.text(groupRows.is(":visible") ? "▼" : "►");
+        });
+    });
+</script>

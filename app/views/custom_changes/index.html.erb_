@@ -1,0 +1,112 @@
+<%= form_tag({ controller: 'custom_changes', action: 'index' }, method: 'get') do %>
+  <%= stylesheet_link_tag 'custom_changes', plugin: 'custom_changes' %>
+  <div>
+    <label for="start_date">Начало периода:</label>
+    <%= date_field_tag 'start_date', params[:start_date] %>
+  </div>
+  <div>
+    <label for="end_date">Конец периода:</label>
+    <%= date_field_tag 'end_date', params[:end_date] %>
+  </div>
+  <div>
+    <label for="user_id">Руководитель отдела:</label>
+    <%= select_tag 'user_id', options_for_select(@users_in_group.map { |user| ["#{user[2]} #{user[1]}", user[0]] }, selected: params[:user_id]), include_blank: true %>
+  </div>
+  <div>
+    <label for="project_id">Проект:</label>
+    <%= select_tag 'project_id', options_from_collection_for_select(@projects, 'id', 'name', params[:project_id]), include_blank: true %>
+  </div>
+  <div>
+    <%= submit_tag 'Показать' %>
+  </div>
+<% end %>
+
+
+<% if @issues.present? %>
+  <table class="list issues">
+    <thead>
+    <tr>
+      <!--<th class="number">№ п/п</th>-->
+      <th class="checkbox"></th>
+      <th class="id">Номер Задачи</th>
+      <th class="subject">Проект</th>
+      <th class="subject">Тема</th>
+      <th class="cf">Кол-во изменений даты</th>
+      <% if @custom_field_date_id %>
+        <th class="cf_date">Итоговая дата</th>
+      <% end %>
+      <th class="cf">Дата начала задачи</th>
+      <th class="date">Срок завершения задачи</th>
+      <th class="date">Родительская задача</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    <% current_project = nil %>
+    <% @issues.each do |issue| %>
+      <% if current_project != issue.project %>
+        <% current_project = issue.project %>
+        <tr class="project-row">
+          <td colspan="5">
+            <span class="project-toggle">&#9660;</span>
+            <%= current_project.name %>
+          </td>
+        </tr>
+        <tr class="project-tasks">
+
+          <!--  <%# @issues.each.with_index(1) do |issue, index| %>-->
+          <!-- <tr class="<%#= cycle('odd', 'even') %>">-->
+          <!--<td class="number"><%#= index %></td>-->
+          <td class="checkbox"></td>
+          <td class="id"><%= link_to issue.id, issue_path(issue) %></td>
+          <td><%= issue.project.name %></td>
+          <td class="subject"><%= link_to issue.subject, issue_path(issue) %></td>
+          <td class="cf"><%= issue.count_custom_field_changes_from_date_count(@custom_field_date_id, issue.id, params[:start_date], params[:end_date]) %></td>
+          <% if @custom_field_date_id %>
+            <td class="cf_date"><%= issue.custom_value_for(@custom_field_date_id)&.value %></td>
+          <% end %>
+          <td class="date"><%= issue.start_date %></td>
+          <td class="date"><%= issue.due_date %></td>
+          <td class="date"><%= issue.parent_id %></td>
+        </tr>
+
+      <% else %>
+        <tr class="project-tasks collapsed">
+          <td class="checkbox"></td>
+          <td class="id"><%= link_to issue.id, issue_path(issue) %></td>
+          <td><%= issue.project.name %></td>
+          <td class="subject"><%= link_to issue.subject, issue_path(issue) %></td>
+          <td class="cf"><%= issue.count_custom_field_changes_from_date_count(@custom_field_date_id, issue.id, params[:start_date], params[:end_date]) %></td>
+          <% if @custom_field_date_id %>
+            <td class="cf_date"><%= issue.custom_value_for(@custom_field_date_id)&.value %></td>
+          <% end %>
+          <td class="date"><%= issue.start_date %></td>
+          <td class="date"><%= issue.due_date %></td>
+          <td class="date"><%= issue.parent_id %></td>
+        </tr>
+        <%# end %>
+      <% end %>
+    <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>По критерию записей не найдено</p>
+<% end %>
+<br>
+
+<%= link_to 'Экспортировать CSV', export_csv_custom_changes_path(issues: @issues,start_date: params[:start_date], end_date: params[:end_date], format: 'csv') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const projectRows = document.querySelectorAll('.project-row');
+        projectRows.forEach(function (projectRow) {
+            const projectToggle = projectRow.querySelector('.project-toggle');
+            const projectTasks = projectRow.nextElementSibling;
+
+            projectToggle.addEventListener('click', function () {
+                projectTasks.classList.toggle('collapsed');
+                projectToggle.innerHTML = projectTasks.classList.contains('collapsed') ? '&#9658;' : '&#9660;';
+            });
+        });
+    });
+</script>
