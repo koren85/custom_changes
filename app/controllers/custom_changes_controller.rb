@@ -25,10 +25,20 @@ class CustomChangesController < ApplicationController
     end
 
     # Обработайте выбранный статус задачи
-    if params[:status_filter].present? && params[:status_filter] != '0'
-      @issues = @issues.where(status_id: params[:status_filter])
-    else
-      @issues = @issues
+    # if params[:status_filter].present? && params[:status_filter] != '0'
+    #   @issues = @issues.where(status_id: params[:status_filter])
+    # else
+    #   @issues = @issues
+    # end
+
+    if params[:status_filter].present?
+      # Если единственное значение в массиве пустое или равно "0", не применяем фильтр
+      if params[:status_filter].length == 1 && (params[:status_filter].first.blank? || params[:status_filter].first == '0')
+        # выход из условия, фильтр не применяется
+      else
+        # Применение фильтра
+        @issues = @issues.where(status_id: params[:status_filter])
+      end
     end
 
     if params[:user_id].present?
@@ -64,7 +74,7 @@ class CustomChangesController < ApplicationController
 
     filtered_issues = @issues.where(id: subquery)
 
-    #Группировка задач по значению кастомного поля с идентификатором 52
+    # Группировка задач по значению кастомного поля с идентификатором 52
     @issues_by_project = filtered_issues.group_by { |issue| issue.project.custom_field_value(52) }
 
 =begin
@@ -83,6 +93,7 @@ class CustomChangesController < ApplicationController
 
   end
 
+=begin
   def export_csv
     custom_field_date_id = Setting.plugin_custom_changes['custom_field_date_id'].to_i
     issues_ids = params[:issues]
@@ -99,6 +110,49 @@ class CustomChangesController < ApplicationController
       end
 
       send_data csv_data, filename: 'custom_changes.csv', type: 'text/csv'
+    end
+  end
+=end
+
+  def export_csv
+    issues_by_project = JSON.parse(params[:issues])
+
+    if issues_by_project.present?
+      start_date = params[:start_date]
+      end_date = params[:end_date]
+
+      csv_data = CSV.generate(headers: true) do |csv|
+        csv << ['Статистика за период с ' + start_date + ' по ' + end_date]
+
+        csv << ['Группа', 'Номер задачи', 'Проект', 'Тема', 'Кол-во изменений', 'Дата начала', 'Срок завершения'] # Headers of the columns
+
+        issues_by_project.each do |group, issues|
+          issues.each do |issue_hash|
+            project_name = Project.find(issue_hash["project_id"]).name
+            custom_field_changes_count = count_custom_field_changes(
+              Setting.plugin_custom_changes['custom_field_date_id'].to_i,
+              issue_hash["id"],
+              start_date,
+              end_date
+            )
+
+            csv << [
+              group,
+              issue_hash["id"],
+              project_name,
+              issue_hash["subject"],
+              custom_field_changes_count,
+              issue_hash["start_date"],
+              issue_hash["due_date"]
+            ]
+          end
+        end
+      end
+
+      send_data csv_data, filename: 'custom_changes.csv', type: 'text/csv'
+    else
+      # Обработка ошибки: issues_by_project не является хэшем или пуст
+      # Здесь можно добавить ваш код обработки ошибок
     end
   end
 

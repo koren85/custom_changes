@@ -10,7 +10,9 @@
   </div>
   <div>
     <label for="status_filter">Статус задач:</label>
-    <%= select_tag 'status_filter', options_for_select(IssueStatus.all.pluck(:name, :id), params[:status_filter]), include_blank: true %>
+    <%= select_tag 'status_filter[]', options_for_select(IssueStatus.all.pluck(:name, :id), selected: params[:status_filter]), include_blank: true, multiple: true, size: 5 %>
+
+    <%#= select_tag 'status_filter', options_for_select(IssueStatus.all.pluck(:name, :id), params[:status_filter]), include_blank: true %>
   </div>
   <div>
     <label for="user_id">Руководитель отдела:</label>
@@ -87,7 +89,16 @@
 
 <br>
 
-<%= link_to 'Экспортировать CSV', export_csv_custom_changes_path(issues: @issues, start_date: params[:start_date], end_date: params[:end_date], format: 'csv') %>
+<%= form_tag({ controller: 'custom_changes', action: 'export_csv', format: 'csv' }, method: 'post') do %>
+  <%= hidden_field_tag 'issues', @issues_by_project.to_json %>
+  <%= hidden_field_tag 'start_date', params[:start_date] %>
+  <%= hidden_field_tag 'end_date', params[:end_date] %>
+  <%= submit_tag 'Экспортировать CSV', id: 'export_csv_button', style: 'display: none;' %>
+<% end %>
+
+<button id="export_csv_link">Экспортировать CSV</button>
+<%#= link_to 'Экспортировать CSV', export_csv_custom_changes_path(issues: @issues_by_project, start_date: params[:start_date], end_date: params[:end_date], format: 'csv'), id: 'export_csv_link' %>
+
 
 <script>
     $(document).ready(function () {
@@ -104,7 +115,17 @@
 
             // Изменение пиктограммы в зависимости от видимости строк
             var toggleIcon = $(this).find(".toggle-icon");
-            toggleIcon.text(groupRows.is(":visible") ? "▼" : "►");
+            toggleIcon.text(groupRows.is(":visible") ? "▼" : "▶");
         });
+        // Обработка клика по кнопке "Экспортировать CSV"
+        // $("#export_csv_link").click(function (e) {
+        //     e.preventDefault();
+        //     $("#export_csv_button").click();
+        // });
+        $(document).on('click', '#export_csv_link', function(e) {
+            e.preventDefault();
+            $("#export_csv_button").trigger('click');
+        });
+
     });
 </script>
